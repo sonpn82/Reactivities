@@ -42,6 +42,14 @@ namespace API
             {
                 opt.UseSqlite(_config.GetConnectionString("DefaultConnection")); // DefaultConnection input from appsettings.Development.json
             });
+            // this service to allow client site get data from server API - CORS - 
+            services.AddCors(opt => 
+            {
+                opt.AddPolicy("CorsPolicy", policy =>
+                {  // Allow localhost:3000 to access API data
+                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,6 +65,8 @@ namespace API
             //app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors("CorsPolicy"); // to allow localhost:3000 to access API data
 
             app.UseAuthorization();
 
