@@ -21,7 +21,8 @@ function App() {
   }, [])
 
   return (
-    <div>
+    // using Header & List component from Semantic UI
+    <div> 
       <Header as='h2' icon='users' content='Reactivities' />  
       <List>
         {activities.map((activity: any) => (

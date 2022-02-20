@@ -13,7 +13,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Persistence;
 using Microsoft.EntityFrameworkCore;
-
+using MediatR;
+using Application.Activities;
+using Application.Core;
+using API.Extensions;
 
 namespace API
 {
@@ -32,24 +35,11 @@ namespace API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIv5", Version = "v1" });
-            });
-            services.AddDbContext<DataContext>(opt =>  // class DataContext in Persistence.cs
-            {
-                opt.UseSqlite(_config.GetConnectionString("DefaultConnection")); // DefaultConnection input from appsettings.Development.json
-            });
-            // this service to allow client site get data from server API - CORS - 
-            services.AddCors(opt => 
-            {
-                opt.AddPolicy("CorsPolicy", policy =>
-                {  // Allow localhost:3000 to access API data
-                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
-                });
-            });
+
+            // Move all services to Extention/ApplicationServiceExtention
+            // To keep the startup file small & clean
+            services.AddApplicationServices(_config);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

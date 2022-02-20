@@ -11,6 +11,7 @@ namespace Persistence
 {
   public class DataContext : DbContext  // inherit from entityframework dbcontext
   {
+    // DataContext from Entity framework to allow to access data in database - get, input, del
     public DataContext(DbContextOptions options) : base(options)
     {
     }

@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 namespace Domain
 {
+    // class contains our data model
+    // use by entity framework to generate the datatable in Persistence
     public class Activity
     {
         // properties initialize
