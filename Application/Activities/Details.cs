@@ -13,7 +13,7 @@ namespace Application.Activities
         // Query return some data, here is Activity
         public class Query: IRequest<Activity>
         {
-           public Guid Id {get; set;} 
+           public Guid Id {get; set;}   // Id parameter in the request link
         }
 
         // Handler to handle the Query request

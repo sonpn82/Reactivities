@@ -30,6 +30,7 @@ namespace Application.Activities
         // to handle a request of a list of Activity
         public async Task<List<Activity>> Handle(Query request, CancellationToken cancellationToken)
         {  //ToListAsync is from Entity framework
+           // cancellation token to handle when user cancel the data loading 
             return await _context.Activities.ToListAsync(cancellationToken);
         }
     }
