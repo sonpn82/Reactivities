@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Container } from 'semantic-ui-react';
 import { Activity } from '../models/activity';  // Activity interface to set type for activities
 import NavBar from './NavBar';
 import ActivityDashboard from '../../features/activities/dashboard/ActivityDashboard';
 import {v4 as uuid} from 'uuid'; // need to install type script description also for this package, from the warning link
+import agent from '../api/agent';
+import LoadingComponent from './LoadingComponent';
 
 function App() {
 
@@ -20,12 +21,24 @@ function App() {
   // initial state is false
   const [editMode, setEditMode] = useState(false);
 
+  // set state when page is loading
+  const [loading, setLoading] = useState(true);
+
+  // set state when submit data to server - submit button will show the loading symbol
+  const [submitting, setSubmitting] = useState(false);
+
   // useEffect hook run the included task after component get rendered
   // same with componentDidMount and ComponentDid...
   useEffect(() => {
-    axios.get<Activity[]>('http://localhost:5000/api/activities')
+    agent.Activities.list()
       .then(response => {      
-        setActivities(response.data);  // response.data is part of axios response property / response.headers, .status ...
+        let activities: Activity[] = [];
+        response.forEach(activity => {
+          activity.date = activity.date.split('T')[0];  // get the date part only, remove the time part
+          activities.push(activity);
+        })
+        setActivities(activities);  // response.data is part of axios response property / response.headers, .status ...
+        setLoading(false);  // finished loading
     })
   }, [])
 
@@ -53,19 +66,49 @@ function App() {
 
   // set the activities state by either create a new activity or edit an activity
   function handleCreateOrEditActivity(activity: Activity) {
-    activity.id
-      ? setActivities([...activities.filter(act => act.id !== activity.id), activity])  // edit an activity
-      : setActivities([...activities, {...activity, id: uuid()}])  // input new activity with id from uuid
+    // set the submitting state to true
+    setSubmitting(true);
 
-    // set other state also
-    setEditMode(false);  // not in edit mode
-    setSelectedActivity(activity);  // switch to view mode
+    // update activity to database
+    if (activity.id) {
+      agent.Activities.update(activity).then(() => {
+        // update the activities state
+        setActivities([...activities.filter(act => act.id !== activity.id), activity]) 
+        // update other states
+        setSelectedActivity(activity);
+        setEditMode(false);
+        setSubmitting(false);
+      })
+    } else {
+      // create a new activity id
+      activity.id = uuid();
+      // save new activity to database
+      agent.Activities.create(activity).then(() => {
+        // update the Activities state
+        setActivities([...activities, activity])  
+        // update other states also
+        setSelectedActivity(activity);
+        setEditMode(false);
+        setSubmitting(false);
+      })
+    }
   }
 
   // set the activities state when delete an acvitity
   function handleDeleteActivity(id: string) {
+    // set the Submitting state to true
+    setSubmitting(true);
+    // delete the data from server
+    agent.Activities.delete(id).then(() => {
+      // update the Activities state
     setActivities([...activities.filter(act => act.id !== id)])
+      // update other state
+      setSubmitting(false);
+    })
+    
   }
+
+  if (loading) return <LoadingComponent content='Loading app' />
 
   return (
     // using components from Semantic UI - <> is shortcut for <Fragment> component
@@ -83,6 +126,7 @@ function App() {
           closeForm={handleFormClose}
           createOrEdit={handleCreateOrEditActivity}
           deleteActivity={handleDeleteActivity}
+          submitting={submitting}
         />  
       </Container>              
     </>
