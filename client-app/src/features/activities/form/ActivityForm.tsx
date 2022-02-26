@@ -1,16 +1,18 @@
+import { observer } from "mobx-react-lite";
 import React, { ChangeEvent, useState } from "react";
 import { Button, Form, Segment } from "semantic-ui-react";
-import { Activity } from "../../../app/models/activity";
-
-interface Props {
-  activity: Activity | undefined;
-  closeForm: () => void;
-  createOrEdit: (activity: Activity) => void;
-  submitting: boolean;
-}
+import { useStore } from "../../../app/stores/store";
 
 // refer to activity as selectedActivity to avoid duplicated with below useState function
-export default function ActivityForm({activity: selectedActivity, closeForm, createOrEdit, submitting}: Props) {
+export default observer(function ActivityForm() {
+
+  const {activityStore} = useStore();
+  const {selectedActivity, 
+         closeForm,
+         createActivity,
+         updateActivity,
+         loading
+        } = activityStore;
 
   // set initial state  // ?? operator will return the value inside {} if the activity (left side) is null or undefined
   const initialState = selectedActivity ?? {
@@ -26,8 +28,10 @@ export default function ActivityForm({activity: selectedActivity, closeForm, cre
   // useState hook to set the activity state with an initial state
   const [activity, setActivity] = useState(initialState);
 
+  // can be create a new activity or just update an activity
   function handleSubmit() {
-    createOrEdit(activity);
+    activity.id ? updateActivity(activity) :
+                  createActivity(activity);
   }
 
   // htmltextareaelement is event for the textarea
@@ -49,7 +53,7 @@ export default function ActivityForm({activity: selectedActivity, closeForm, cre
           floated="right" 
           positive type="submit" 
           content='Submit' 
-          loading={submitting}
+          loading={loading}
         />
         <Button 
           floated="right" 
@@ -60,4 +64,4 @@ export default function ActivityForm({activity: selectedActivity, closeForm, cre
       </Form>
     </Segment>
   )
-}
+})

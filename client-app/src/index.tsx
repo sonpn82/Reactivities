@@ -3,11 +3,14 @@ import ReactDOM from 'react-dom';
 import './app/layout/styles.css';
 import App from './app/layout/App';
 import reportWebVitals from './reportWebVitals';
+import { store, StoreContext } from './app/stores/store';
 // not import semaintic UI.min.css - cause error - using cdn link instead
 
 ReactDOM.render(  // should remove strictmode of 3rd party app has error
   //<React.StrictMode>
-    <App />,
+  <StoreContext.Provider value={store}>
+    <App />
+  </StoreContext.Provider>,
   //</React.StrictMode>,
   document.getElementById('root')
 );
