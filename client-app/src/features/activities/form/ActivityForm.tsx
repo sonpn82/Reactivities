@@ -1,37 +1,62 @@
 import { observer } from "mobx-react-lite";
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { Button, Form, Segment } from "semantic-ui-react";
+import LoadingComponent from "../../../app/layout/LoadingComponent";
 import { useStore } from "../../../app/stores/store";
+import {v4 as uuid} from 'uuid';
+import { useNavigate } from "react-router-dom";
 
 // refer to activity as selectedActivity to avoid duplicated with below useState function
 export default observer(function ActivityForm() {
 
-  const {activityStore} = useStore();
-  const {selectedActivity, 
-         closeForm,
-         createActivity,
-         updateActivity,
-         loading
-        } = activityStore;
+  let navigate = useNavigate();
 
-  // set initial state  // ?? operator will return the value inside {} if the activity (left side) is null or undefined
-  const initialState = selectedActivity ?? {
+  const {activityStore} = useStore();
+  const {createActivity,
+         updateActivity,
+         loading,
+         loadActivity,
+         loadingInitial    
+        } = activityStore;
+  
+  const {id} = useParams<{id: string}>();
+
+  const defaultActivity = {
     id: '',
     title: '',
     category: '',
     description: '',
     date: '',
     city: '',
-    venue: ''
-  }
+    venue: ''}
 
   // useState hook to set the activity state with an initial state
-  const [activity, setActivity] = useState(initialState);
+  const [activity, setActivity] = useState(defaultActivity);
+ 
+  // if an id exist in the link parameter then load the activity from that id
+  useEffect(() => {
+    if (id) {  
+      loadActivity(id).then(activity => setActivity(activity!))  // add ! to remove the undefined warning, not a good practice      
+    } else {
+      setActivity(defaultActivity)
+    }
+     
+  }, [id, loadActivity]);  // effect will only activate if value in [id, loadActivity] change. If not apply this then render will call setActivity => render again => call setAct again ! forever loop!
 
   // can be create a new activity or just update an activity
   function handleSubmit() {
-    activity.id ? updateActivity(activity) :
-                  createActivity(activity);
+    if(activity.id.length === 0) {
+      // create a new activity
+      let newActivity = {
+        ...activity,
+        id: uuid()
+      };
+      createActivity(newActivity).then(() => navigate(`/activities/${newActivity.id}`));
+    } else {
+      // update an activity
+      updateActivity(activity).then(() => navigate(`/activities/${activity.id}`));
+    }
   }
 
   // htmltextareaelement is event for the textarea
@@ -39,6 +64,9 @@ export default observer(function ActivityForm() {
     const {name, value} = event.target;  // extract name and value of input field
     setActivity({...activity, [name]: value})  // set corresponding field in activity with input value
   }
+
+  // Show the loading page
+  if (loadingInitial) return <LoadingComponent content="Loading activity..." />
 
   return (
     <Segment clearing>
@@ -59,7 +87,7 @@ export default observer(function ActivityForm() {
           floated="right" 
           positive type="button" 
           content='Cancel' 
-          onClick={closeForm}
+          as={Link} to='/activities'
         />
       </Form>
     </Segment>

@@ -1,7 +1,6 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
 import { Activity } from "../models/activity";
-import {v4 as uuid} from 'uuid';
 
 export default class ActivityStore {
 
@@ -22,6 +21,7 @@ export default class ActivityStore {
   }
 
   loadActivities = async () => {   
+    this.loadingInitial = true;
     try {      
       // get the list of activity from database
       const activities = await agent.Activities.list();
@@ -30,10 +30,7 @@ export default class ActivityStore {
    
         // format the date string of each activity
       activities.forEach(activity => {
-        activity.date = activity.date.split('T')[0];  // get the date part only, remove the time part
-
-        // push the activity to activities state array 
-        this.activityResistry.set(activity.id, activity);
+        this.setActivity(activity);
       })
 
       this.setLoadingInitial(false);         
@@ -44,34 +41,57 @@ export default class ActivityStore {
     }
   }
 
+  // load an activity from its id
+  loadActivity = async (id:string) => {
+    // check if we can get activity from current memory
+    let activity = this.getActivity(id);
+    if (activity) {
+      // set the selectedActivity state
+      this.selectedActivity = activity;
+      // return an activity from this promise
+      return activity;
+
+    } else {
+      // if not then load the activity from database using agent
+      this.loadingInitial = true;      
+      try {
+        activity = await agent.Activities.details(id);
+        // modify the date format
+        this.setActivity(activity);
+        runInAction(() => {
+          // set the selectedActivity status
+          this.selectedActivity = activity;
+        })       
+        // set loadingInitial state to false
+        this.setLoadingInitial(false);
+        // return an activity from this promis
+        return activity;
+
+      } catch (error) {
+        console.log(error);
+        this.setLoadingInitial(false);
+      }
+    }
+  }
+
+  private setActivity = (activity: Activity) => {
+    // get the date part only, remove the time part
+    activity.date = activity.date.split('T')[0];  
+
+    // push the activity to activities state array 
+    this.activityResistry.set(activity.id, activity);
+  }
+
+  // get an activity in the activityResistry by id
+  private getActivity = (id: string) => {
+    return this.activityResistry.get(id);
+  }
+
   // set the loadingInitial state
   setLoadingInitial = (state: boolean) => {
     this.loadingInitial = state;
   }
-
-  // set the selectedActivity state to either an activity or undefined
-  // find can return undefined so selectedActivity must included type undefined
-  selectActivity = (id: string) => {
-    this.selectedActivity = this.activityResistry.get(id);
-  }
-
-  // set the selectedActivity state to undefined
-  cancelSelectedActivity = () => {
-    this.selectedActivity = undefined;
-  }
   
-  // set the selectedActivity state & editMode state
-  // open the edit form with an id (?=optional) or cancel the selected activity
-  openForm = (id?: string) => {
-    id ? this.selectActivity(id) : this.cancelSelectedActivity();
-    this.editMode = true;
-  }
-
-  // change the editMode state to false
-  closeForm = () => {
-    this.editMode = false;
-  }
-
   // create a new activity
   // set the loading state to true & after finish to false
   // update the activities state by adding a new activity to the array
@@ -79,7 +99,6 @@ export default class ActivityStore {
   // set the edit mode to false after finish
   createActivity = async (activity: Activity) => {
     this.loading = true;
-    activity.id = uuid();
     try {
       // use agent to create a new activity in database
       await agent.Activities.create(activity);
@@ -101,7 +120,7 @@ export default class ActivityStore {
   // set the selectedActivity to the new activity
   // set the editmode state to false
   // set the loading state to true then after finish to false
-  updateActivity =async (activity:Activity) => {
+  updateActivity = async (activity:Activity) => {
     this.loading = true;
     try {
       // use the agent to update the activity to database
@@ -123,13 +142,12 @@ export default class ActivityStore {
   // delete an activity
   // set the activities state with one act removed
   // set the loading state to true then after finish to false
-  deleteActivity =async (id:string) => {
+  deleteActivity = async (id:string) => {
     this.loading = true;
     try {
       await agent.Activities.delete(id);
       runInAction(() => {
         this.activityResistry.delete(id);
-        if (this.selectedActivity?.id === id) this.cancelSelectedActivity();
         this.loading = false;
       })
     } catch (error) {
