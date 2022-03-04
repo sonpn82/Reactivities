@@ -17,6 +17,8 @@ using MediatR;
 using Application.Activities;
 using Application.Core;
 using API.Extensions;
+using FluentValidation.AspNetCore;
+using API.Middleware;
 
 namespace API
 {
@@ -35,7 +37,10 @@ namespace API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers()
+                    .AddFluentValidation(config => {  // add FluentValidation to our service
+                        config.RegisterValidatorsFromAssemblyContaining<Create>();  // where the valiation is - in Application.Activities.Create
+                    });
 
             // Move all services to Extention/ApplicationServiceExtention
             // To keep the startup file small & clean
@@ -45,9 +50,12 @@ namespace API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // use our customized exception middle ware
+            app.UseMiddleware<ExceptionMiddleware>();
+
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                //app.UseDeveloperExceptionPage();  remove this one
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebAPIv5 v1"));
             }

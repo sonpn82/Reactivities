@@ -4,7 +4,7 @@ import { Activity } from "../models/activity";
 
 export default class ActivityStore {
 
-  // list of all states used in our program
+  // list of all states used in our program activity
   activityResistry = new Map<string, Activity>();
   selectedActivity: Activity | undefined = undefined;
   editMode = false;
