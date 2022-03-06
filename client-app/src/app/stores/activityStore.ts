@@ -1,6 +1,7 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
 import { Activity } from "../models/activity";
+import {format} from 'date-fns';  // to format Date object
 
 export default class ActivityStore {
 
@@ -9,7 +10,7 @@ export default class ActivityStore {
   selectedActivity: Activity | undefined = undefined;
   editMode = false;
   loading = false;
-  loadingInitial = true;
+  loadingInitial = false;
 
   constructor() {
     makeAutoObservable(this)
@@ -18,7 +19,7 @@ export default class ActivityStore {
   // computed function to sort activities by date
   get activitiesByDate() {
     return Array.from(this.activityResistry.values())
-                .sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+                .sort((a, b) => a.date!.getTime() - b.date!.getTime());
   }
 
   // computed function to group activities by date
@@ -26,8 +27,8 @@ export default class ActivityStore {
     // Object.entries cut and object array into 1 array of keys and 1 array of value [[keys],[vals]]
     return Object.entries(
       this.activitiesByDate.reduce((activities, activity) => {
-        // get the date of each activity
-        const date = activity.date;
+        // get the date of each activity as a string with date only
+        const date = format(activity.date!, 'dd MMM yyyy');
         // if have array activities[date] then add that activity to the activities[date] array.
         // If not, create a new activities[date] array with that activity
         activities[date] = activities[date] ? [...activities[date], activity] : 
@@ -93,7 +94,7 @@ export default class ActivityStore {
 
   private setActivity = (activity: Activity) => {
     // get the date part only, remove the time part
-    activity.date = activity.date.split('T')[0];  
+    activity.date = new Date(activity.date!);  
 
     // push the activity to activities state array 
     this.activityResistry.set(activity.id, activity);
