@@ -11,6 +11,7 @@ using Persistence;
 
 namespace API.Controllers
 {
+  [AllowAnonymous]
   public class ActivitiesController : BaseApiController  // BaseApiController in BaseApiController.cs
   {
     // Using Mediator to access to database data - get, put, del ...

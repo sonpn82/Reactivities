@@ -22,7 +22,7 @@ export default observer(function ActivityDashboard() {  // destructure the Prop,
   }, [activityResistry.size, loadActivities])
 
   // show page is loading when start the page and load data from database
-  if (activityStore.loadingInitial) return <LoadingComponent content='Loading app' />
+  if (activityStore.loadingInitial) return <LoadingComponent content='Loading activities...' />
 
   return (
     <Grid>
