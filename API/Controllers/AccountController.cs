@@ -67,7 +67,7 @@ namespace API.Controllers
             if (await _userManager.Users.AnyAsync(x => x.UserName == registerDto.Username)) {
                 ModelState.AddModelError("username", "Username taken");
                 // return an error object, not just a string to avoid getting error in Register form API
-                return BadRequest("Username taken");
+                return ValidationProblem();
             }
             // if ok, create a new user with register info
             var user = new AppUser
