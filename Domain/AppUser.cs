@@ -10,5 +10,8 @@ namespace Domain
     {
         public string? DisplayName { get; set; }
         public string? Bio { get; set; }
+        // User goes to Activities or host Activities which is saved in Activity table
+        // ActivityAttendee is the joint table between Activity table and User table for many to many relationship
+        public ICollection<ActivityAttendee>? Activities { get; set; }
     }
 }

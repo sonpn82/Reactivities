@@ -11,7 +11,7 @@ using Persistence;
 
 namespace API.Controllers
 {
-  [AllowAnonymous]
+  //[AllowAnonymous] enable anyone to get data without login token
   public class ActivitiesController : BaseApiController  // BaseApiController in BaseApiController.cs
   {
     // Using Mediator to access to database data - get, put, del ...
@@ -42,6 +42,7 @@ namespace API.Controllers
     }
 
     // Edit the activity
+    [Authorize(Policy = "IsActivityHost")]  // service to check if user is host of the activity to be edited or not - IdentityServiceExtention.cs + IsHostRequirement.cs
     [HttpPut("{id}")]
     public async Task<IActionResult> EditActivity(Guid id, Activity activity)
     {
@@ -56,6 +57,13 @@ namespace API.Controllers
     {
       // handle error using HandleResult
       return HandleResult(await Mediator.Send(new Delete.Command{Id = id}));
+    }
+
+    // Attend or cancel an activity by user
+    [HttpPost("{id}/attend")]
+    public async Task<IActionResult> Attend(Guid id)
+    {
+      return HandleResult(await Mediator.Send(new UpdateAttendance.Command{Id = id}));
     }
   }
 }

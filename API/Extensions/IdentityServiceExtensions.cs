@@ -5,7 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using API.Services;
 using Domain;
+using Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
@@ -26,6 +28,7 @@ namespace API.Extensions
             // Token key in appsetting.development.json
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));  
 
+            // for user login 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(opt =>
                     {
@@ -38,7 +41,17 @@ namespace API.Extensions
                         };
                     });
 
-            services.AddScoped<TokenService>();
+            // to confirm if user is host of an event or not
+            services.AddAuthorization(opt => 
+            {
+                opt.AddPolicy("IsActivityHost", policy => 
+                {
+                    policy.Requirements.Add(new IsHostRequirement());
+                });
+            });
+            services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
+
+            services.AddScoped<TokenService>();           
 
             return services;
         }

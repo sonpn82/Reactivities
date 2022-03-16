@@ -22,6 +22,7 @@ namespace API.Services
     public string CreateToken(AppUser user)
         {
             // claim in the payload part
+            // contain necessary info about user so later we can access it easily
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),

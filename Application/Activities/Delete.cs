@@ -33,7 +33,7 @@ namespace Application.Activities
         //if (activity == null) return null;
         
         // remove activity from memory
-        _context.Remove(activity);
+        _context.Remove(activity!);
 
         // Save the change to database
         var result = await _context.SaveChangesAsync() > 0;

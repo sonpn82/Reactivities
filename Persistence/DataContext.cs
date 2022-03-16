@@ -19,5 +19,30 @@ namespace Persistence
     }
 
     public DbSet<Activity> Activities { get; set; }  // set Activities table with column from properties on Domain/Activity.cs
+   
+    // ActivityAttendee is the joint table between Activity tbl & User tbl
+    // created for many to many relationship
+    public DbSet<ActivityAttendee> ActivityAttendees { get; set;}
+
+    // to config many to many relationship between Activity table and Attendee table
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+      base.OnModelCreating(builder);
+
+      builder.Entity<ActivityAttendee>
+        (x => x.HasKey(aa => new {aa.AppUserId, aa.ActivityId}));
+
+      // one App user with many Activities
+      builder.Entity<ActivityAttendee>()
+        .HasOne(u => u.AppUser)
+        .WithMany(a => a.Activities)
+        .HasForeignKey(aa => aa.AppUserId);
+      
+      // One Activity with many AppUsers
+      builder.Entity<ActivityAttendee>()
+        .HasOne(u => u.Activity)
+        .WithMany(a => a.Attendees)
+        .HasForeignKey(aa => aa.ActivityId);
+    }
   }
 }
