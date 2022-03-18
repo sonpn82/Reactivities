@@ -1,7 +1,9 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
-import { Activity } from "../models/activity";
+import { Activity, ActivityFormValues } from "../models/activity";
 import {format} from 'date-fns';  // to format Date object
+import { store } from "./store";
+import { Profile } from "../models/profile";
 
 export default class ActivityStore {
 
@@ -42,9 +44,7 @@ export default class ActivityStore {
     this.loadingInitial = true;
     try {      
       // get the list of activity from database
-      const activities = await agent.Activities.list();
-
-      // must use runinaction in order to change state in async mode
+      const activities = await agent.Activities.list();     
    
         // format the date string of each activity
       activities.forEach(activity => {
@@ -92,7 +92,22 @@ export default class ActivityStore {
     }
   }
 
+  // set the activityRegistry state by adding a new activity to it
+  // config the isGoing, isHost, host and date field of activity
   private setActivity = (activity: Activity) => {
+    // get user state from user store
+    const user = store.userStore.user;
+    // if user is login (have user state) then
+    if (user) {
+      // if username exist in the attendees list of event then user isGoing to this event (isGoing set=true)
+      activity.isGoing = activity.attendees!.some(
+        a => a.username === user.username
+      )
+      // check if user is host or not
+      activity.isHost = activity.hostUsername === user.username;
+      // find the host of the activity
+      activity.host = activity.attendees?.find(x => x.username === activity.hostUsername);      
+    }
     // get the date part only, remove the time part
     activity.date = new Date(activity.date!);  
 
@@ -110,50 +125,54 @@ export default class ActivityStore {
     this.loadingInitial = state;
   }
   
-  // create a new activity
-  // set the loading state to true & after finish to false
-  // update the activities state by adding a new activity to the array
-  // set the selectedActivity state to the new activity
-  // set the edit mode to false after finish
-  createActivity = async (activity: Activity) => {
-    this.loading = true;
+  // create a new activity  
+  // update the activitieRegistry state by adding a new activity to the array
+  // set the selectedActivity state to the new activity  
+  createActivity = async (activity: ActivityFormValues) => {
+    const user = store.userStore.user;
+    const attendee = new Profile(user!);
+
     try {
       // use agent to create a new activity in database
       await agent.Activities.create(activity);
-      runInAction(() => {
-        this.activityResistry.set(activity.id, activity);
-        this.selectedActivity = activity;
-        this.editMode = false;
-        this.loading = false;
+
+      // set the create from value to the Activity object
+      const newActivity = new Activity(activity);
+
+      // add missing fields to the Activity object
+      newActivity.hostUsername = user!.username;
+      newActivity.attendees = [attendee];  // array of attendees - 1st one is the user
+
+      // add the activity to the activityRegistry state and config remain field like isGoing, isHost, host...
+      this.setActivity(newActivity);
+
+      // update the selectedActivity state
+      runInAction(() => {      
+        this.selectedActivity = newActivity;  
       })
     } catch (error) {
-      console.log(error)
-      runInAction(() => {  
-        this.loading = false;
-      })
+      console.log(error)  
     }
   }
 
   // update the activities state
   // set the selectedActivity to the new activity
-  // set the editmode state to false
-  // set the loading state to true then after finish to false
-  updateActivity = async (activity:Activity) => {
-    this.loading = true;
+  updateActivity = async (activity:ActivityFormValues) => {
+
     try {
       // use the agent to update the activity to database
       await agent.Activities.update(activity);    
       runInAction(() => {
-        this.activityResistry.set(activity.id, activity);
-        this.selectedActivity = activity;  
-        this.editMode = false;
-        this.loading = false;            
+        if (activity.id) {
+          // using spread operator to get all fields of current activity 
+          // and then overwrite them with the same field in new activity
+          let updatedActivity = {...this.getActivity(activity.id), ...activity}
+          this.activityResistry.set(activity.id, updatedActivity as Activity);  // must use as Activity to avoid type error warning
+          this.selectedActivity = updatedActivity as Activity;
+        }               
       }) 
     } catch (error) {
-      console.log(error);
-      runInAction(() => {
-        this.loading = false;            
-      })
+      console.log(error);    
     }
   }
 
@@ -173,6 +192,58 @@ export default class ActivityStore {
       runInAction(() => {
         this.loading = false;
       })
+    }
+  }
+
+  // update attendance list in an activity
+  // modify the loading state: => true => false
+  // modify the selectedActivity state (isGoing, attendees state)
+  updateAttendance = async () => {
+    const user = store.userStore.user;
+    this.loading = true;
+    try {
+      // post the user id to the API attend end point
+      await agent.Activities.attend(this.selectedActivity!.id);
+      runInAction(() => {
+        // if user currently is going to this event then that mean he will leave this event
+        if (this.selectedActivity?.isGoing) {
+          this.selectedActivity.attendees = this.selectedActivity.attendees?.filter(
+            a => a.username !== user?.username);
+          this.selectedActivity.isGoing = false;
+        } else {  //  if user did not join this event yet then they will join this event now - their profile will be pushed to attendees list
+          const attendee = new Profile(user!);
+          this.selectedActivity?.attendees?.push(attendee);
+          this.selectedActivity!.isGoing = true;
+        }
+        // update the activity in activity list (activityRegistry)
+        this.activityResistry.set(this.selectedActivity!.id, this.selectedActivity!)
+      })
+    } catch (error) {
+      
+    } finally {
+      runInAction(() => this.loading = false);
+    }
+  }
+
+  // toggle the isCancelled field to true or false
+  // set the loading state to true then false
+  // update the selectedActivity state and activityRegistry state
+  cancelActivityToggle =async () => {
+    this.loading = true;
+    try {
+      // use the attend end point to either attend the activity or leave (cancel) the activity
+      await agent.Activities.attend(this.selectedActivity!.id);
+      runInAction(() => {
+        // toggle the isCancelled field in selectedActivity state
+        this.selectedActivity!.isCancelled = !this.selectedActivity?.isCancelled;
+
+        // update the activityRegistry state
+        this.activityResistry.set(this.selectedActivity!.id, this.selectedActivity!);
+      })
+    } catch (error) {
+      console.log(error)
+    } finally {
+      runInAction (() => this.loading = false);
     }
   }
 }

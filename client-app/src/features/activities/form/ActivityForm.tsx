@@ -13,7 +13,7 @@ import MyTextArea from "../../../app/common/form/MyTextArea";
 import MySelectInput from "../../../app/common/form/MySelectInput";
 import { categoryOptions } from "../../../app/common/options/categoryOptions";
 import MyDateInput from "../../../app/common/form/MyDateInput";
-import { Activity } from "../../../app/models/activity";
+import { ActivityFormValues } from "../../../app/models/activity";
 
 // refer to activity as selectedActivity to avoid duplicated with below useState function
 export default observer(function ActivityForm() {
@@ -22,22 +22,21 @@ export default observer(function ActivityForm() {
 
   const {activityStore} = useStore();
   const {createActivity,
-         updateActivity,
-         loading,
+         updateActivity,        
          loadActivity,
          loadingInitial    
         } = activityStore;
   
   const {id} = useParams<{id: string}>();
 
-  const defaultActivity = {
-    id: '',
-    title: '',
-    category: '',
-    description: '',
-    date: null,
-    city: '',
-    venue: ''}
+  // const defaultActivity = {
+  //   id: '',
+  //   title: '',
+  //   category: '',
+  //   description: '',
+  //   date: null,
+  //   city: '',
+  //   venue: ''}
 
   // to validate the form data in Formik, need to install Yup package
   const validationSchema = Yup.object({
@@ -50,21 +49,21 @@ export default observer(function ActivityForm() {
   })
 
   // useState hook to set the activity state with an initial state
-  const [activity, setActivity] = useState<Activity>(defaultActivity);
+  const [activity, setActivity] = useState<ActivityFormValues>(new ActivityFormValues());
  
   // if an id exist in the link parameter then load the activity from that id
   useEffect(() => {
     if (id) {  
-      loadActivity(id).then(activity => setActivity(activity!))  // add ! to remove the undefined warning, not a good practice      
-    } else {
-      setActivity(defaultActivity)
-    }
+      loadActivity(id).then(activity => setActivity(new ActivityFormValues(activity)))  // add ! to remove the undefined warning, not a good practice      
+    } //else {
+      //setActivity(defaultActivity)
+    //}
      
   }, [id, loadActivity]);  // effect will only activate if value in [id, loadActivity] change. If not apply this then render will call setActivity => render again => call setAct again ! forever loop!
 
   // can be create a new activity or just update an activity
-  function handleFormSubmit(activity: Activity) {
-    if(activity.id.length === 0) {
+  function handleFormSubmit(activity: ActivityFormValues) {
+    if(!activity.id) {
       // create a new activity
       let newActivity = {
         ...activity,
@@ -109,7 +108,7 @@ export default observer(function ActivityForm() {
               floated="right" 
               positive type="submit" 
               content='Submit' 
-              loading={loading}
+              loading={isSubmitting} // button show loading state (circle rotating symbol) when it is submitting the value
             />
             <Button 
               floated="right" 
