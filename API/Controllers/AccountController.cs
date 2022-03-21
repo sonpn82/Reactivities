@@ -35,7 +35,9 @@ namespace API.Controllers
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
             // find the login user by his email
-            var user = await _userManager.FindByEmailAsync(loginDto.Email);
+            // also load the photo collection of user
+            var user = await _userManager.Users.Include(p => p.Photos)
+                .FirstOrDefaultAsync(x => x.Email == loginDto.Email);
 
             // return unauthorized if not found
             if(user == null) return Unauthorized();
@@ -92,7 +94,9 @@ namespace API.Controllers
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
             // get current user email from token payload - email field
-            var user = await _userManager.FindByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
+            // also load the user photo collection
+            var user = await _userManager.Users.Include(p => p.Photos)
+                .FirstOrDefaultAsync(x=> x.Email == User.FindFirstValue(ClaimTypes.Email));
             // return a new user object from this
             return CreateUserObject(user);
         }
@@ -102,7 +106,7 @@ namespace API.Controllers
             return new UserDto
             {
                 DisplayName = user.DisplayName,
-                Image = null,
+                Image = user?.Photos?.FirstOrDefault(x =>x.IsMain)?.Url, // image is main photo of AppUser
                 Token = _tokenService.CreateToken(user),
                 Username = user.UserName
             };

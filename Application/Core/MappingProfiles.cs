@@ -22,11 +22,18 @@ namespace Application.Core
         .ForMember(d => d.HostUsername, o => o.MapFrom(s => s.Attendees!
           .FirstOrDefault(x => x.IsHost)!.AppUser!.UserName));
 
-      // create a new map from ActivityAttendee to Profiles.Profile also
-      CreateMap<ActivityAttendee, Profiles.Profile>()
+      // create a new map from ActivityAttendee to AttendeeDto 
+      CreateMap<ActivityAttendee, AttendeeDto>()
         .ForMember(d => d.DisplayName, o => o.MapFrom(s => s.AppUser!.DisplayName))
         .ForMember(d => d.Username, o => o.MapFrom(s => s.AppUser!.UserName))
-        .ForMember(d => d.Bio, o => o.MapFrom(s => s.AppUser!.Bio));
+        .ForMember(d => d.Bio, o => o.MapFrom(s => s.AppUser!.Bio))
+        .ForMember(d => d.Image, o=> o.MapFrom(s => s.AppUser!.Photos!.FirstOrDefault(x => x.IsMain)!.Url));  // map the image
+
+      // map from AppUser to Profile
+      // already have username, displayname and bio. Need Image
+      // Image will be the photo which is set as Main in user photo collection
+      CreateMap<AppUser, Profiles.Profile>()
+        .ForMember(d => d.Image, o=> o.MapFrom(s => s.Photos!.FirstOrDefault(x => x.IsMain)!.Url));
     }
   }
 }

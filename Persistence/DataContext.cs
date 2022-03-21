@@ -18,11 +18,15 @@ namespace Persistence
     {
     }
 
-    public DbSet<Activity> Activities { get; set; }  // set Activities table with column from properties on Domain/Activity.cs
+    // set Activities table with column from properties on Domain/Activity.cs
+    public DbSet<Activity> Activities { get; set; }  
    
     // ActivityAttendee is the joint table between Activity tbl & User tbl
     // created for many to many relationship
     public DbSet<ActivityAttendee> ActivityAttendees { get; set;}
+
+    // Photos table name
+    public DbSet<Photo> Photos { get; set; }
 
     // to config many to many relationship between Activity table and Attendee table
     protected override void OnModelCreating(ModelBuilder builder)

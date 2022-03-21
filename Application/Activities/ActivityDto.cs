@@ -22,6 +22,6 @@ namespace Application.Activities
 
         // additional prop compare with the base Activity class
         public string? HostUsername { get; set; }  // to know who is the host of the event
-        public ICollection<Profile>? Attendees { get; set; }  // to avoid infinite loop if using ActivityAttendees
+        public ICollection<AttendeeDto>? Attendees { get; set; }  // to avoid infinite loop if using ActivityAttendees
     }
 }

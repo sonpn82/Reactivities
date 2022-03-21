@@ -13,5 +13,7 @@ namespace Domain
         // User goes to Activities or host Activities which is saved in Activity table
         // ActivityAttendee is the joint table between Activity table and User table for many to many relationship
         public ICollection<ActivityAttendee>? Activities { get; set; }
+        // one to many relationship - one Appuser has many photos
+        public ICollection<Photo>? Photos {get; set;}
     }
 }
