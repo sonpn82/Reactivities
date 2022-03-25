@@ -24,15 +24,15 @@ namespace Application.Activities
         public class Handler: IRequestHandler<Query, Result<ActivityDto>>
         {
             private readonly DataContext _context;
-      private readonly IMapper _mapper;
+        private readonly IMapper _mapper;
 
-      public Handler(DataContext context, IMapper mapper)
+         public Handler(DataContext context, IMapper mapper)
             {
                 _context = context;
                 _mapper = mapper;
-      }
+            }
 
-            public async Task<Result<ActivityDto>> Handle(Query request, CancellationToken cancellationToken)
+        public async Task<Result<ActivityDto>> Handle(Query request, CancellationToken cancellationToken)
             {
                 var activity = await _context.Activities
                     .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider)   // project from activity to activityDto  (AutoMapper)

@@ -24,7 +24,7 @@ namespace Application.Activities
     // IRequestHandler from MediatR
     public class Handler : IRequestHandler<Query, Result<List<ActivityDto>>>     // change from Activity to ActivityDto to avoid infinite loop error
     {
-        private readonly DataContext _context;
+      private readonly DataContext _context;
       private readonly IMapper _mapper;
 
       public Handler(DataContext context, IMapper mapper)
@@ -35,7 +35,7 @@ namespace Application.Activities
 
         // Task is an asynchronos opeartion that return a value
         // to handle a request of a list of Activity
-        public async Task<Result<List<ActivityDto>>> Handle(Query request, CancellationToken cancellationToken)   // change from Activity to ActivityDto to avoid infinite loop error
+      public async Task<Result<List<ActivityDto>>> Handle(Query request, CancellationToken cancellationToken)   // change from Activity to ActivityDto to avoid infinite loop error
         {  // ToListAsync is from Entity framework
            // cancellation token to handle when user cancel the data loading 
            var activities = await _context.Activities

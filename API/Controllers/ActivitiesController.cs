@@ -42,6 +42,7 @@ namespace API.Controllers
     }
 
     // Edit the activity
+    // /api/activities/id
     [Authorize(Policy = "IsActivityHost")]  // service to check if user is host of the activity to be edited or not - IdentityServiceExtention.cs + IsHostRequirement.cs
     [HttpPut("{id}")]
     public async Task<IActionResult> EditActivity(Guid id, Activity activity)
@@ -52,6 +53,7 @@ namespace API.Controllers
     }
 
     // Delete an activity
+    // /api/activities/id
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteActivity(Guid id)
     {
@@ -60,6 +62,7 @@ namespace API.Controllers
     }
 
     // Attend or cancel an activity by user
+    // /api/activities/id/attend
     [HttpPost("{id}/attend")]
     public async Task<IActionResult> Attend(Guid id)
     {

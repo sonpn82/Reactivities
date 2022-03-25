@@ -30,7 +30,7 @@ namespace API.Controllers
         _signInManager = signInManager;
         _tokenService = tokenService;
     }
-        // api/login
+        // api/account/login
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
@@ -55,7 +55,7 @@ namespace API.Controllers
             return Unauthorized();
         }
 
-        // api/register
+        // api/account/register
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
@@ -89,6 +89,7 @@ namespace API.Controllers
             return BadRequest("Problem registering user");
         }
 
+        // /api/account
         [Authorize]  // user must be authorized to get to this end point
         [HttpGet]
         public async Task<ActionResult<UserDto>> GetCurrentUser()

@@ -9,7 +9,8 @@ namespace API.Controllers
 {
     public class PhotosController : BaseApiController
     {
-        // End point to add a photo to user photo collection and cloudinary        
+        // End point to add a photo to user photo collection and cloudinary       
+        // /api/photos 
         [HttpPost]
         public async Task<IActionResult> Add([FromForm] Add.Command command)
         {
@@ -17,6 +18,7 @@ namespace API.Controllers
         }
 
         // End point to delete a photo from photo collection
+        // /api/photos/id 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
@@ -24,6 +26,7 @@ namespace API.Controllers
         }
 
         // End point to set a photo to Main
+        // /api/photos/id/setMain
         [HttpPost("{id}/setMain")]
         public async Task<ActionResult> SetMain(string id)
         {

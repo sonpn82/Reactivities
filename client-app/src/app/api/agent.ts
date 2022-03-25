@@ -111,7 +111,8 @@ const Profiles = {
   },
   // set a photo to be main photo using API end point
   setMainPhoto: (id: string) => requests.post(`/photos/${id}/setMain`, {}),
-  deletePhoto: (id: string) => requests.del(`/photos/${id}`)
+  deletePhoto: (id: string) => requests.del(`/photos/${id}`),
+  updateProfile: (profile: Partial<Profile>) => requests.put(`/profiles`, profile) // only use part of Profile so Partial
 }
 
 // wrap all in the agent object

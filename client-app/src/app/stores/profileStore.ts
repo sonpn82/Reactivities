@@ -98,4 +98,26 @@ export default class ProfileStore {
       console.log(error);
     }
   }
+
+  // update profile with a partial profile (not contain all fields of profile, only displayName and Bio)
+  // change the profile state. Change loading state from true to false
+  updateProfile =async (profile:Partial<Profile>) => {
+    this.loading = true;
+    try {
+      // update profile using API end point
+      await agent.Profiles.updateProfile(profile);
+      runInAction(() => {
+        // if profile displayName is Changed then update the state in store
+        if (profile.displayName && profile.displayName !== store.userStore.user?.displayName) {
+          store.userStore.setDisplayName(profile.displayName);
+        }
+        // use spread operator to overwrite all duplicated field between input profile and our profile
+        this.profile = {...this.profile, ...profile as Profile};
+        this.loading = false;
+      })
+    } catch (error) {
+      console.log(error);
+      runInAction(() => this.loading = false);
+    }
+  }
 }
