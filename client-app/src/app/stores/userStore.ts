@@ -78,4 +78,9 @@ export default class UserStore {
       throw error;
     }   
   }
+
+  // set image state for user
+  setImage = (image: string) => {
+    if (this.user) this.user.image = image;    
+  }
 }

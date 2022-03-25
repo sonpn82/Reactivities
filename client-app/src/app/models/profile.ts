@@ -5,6 +5,7 @@ export interface Profile {  // all fields must have exact same name with backend
   displayName: string;  // same with prop in AppUser table
   image?: string;
   bio?: string;  // same with prop in AppUser table
+  photos?: Photo[]
 }
 
 // this class create an object that contains some prop of User interface - not have token prop
@@ -14,4 +15,11 @@ export class Profile implements Profile {
     this.displayName = user.displayName;
     this.image = user.image;
   }
+}
+
+// interface for Photo, same with backend database
+export interface Photo {
+  id: string;
+  url: string;
+  isMain: boolean; 
 }
