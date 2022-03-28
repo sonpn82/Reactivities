@@ -28,6 +28,9 @@ namespace Persistence
     // Photos table name
     public DbSet<Photo> Photos { get; set; }
 
+    // Comment table name
+    public DbSet<Comment> Comments {get; set;}
+
     // to config many to many relationship between Activity table and Attendee table
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -47,6 +50,12 @@ namespace Persistence
         .HasOne(u => u.Activity)
         .WithMany(a => a.Attendees)
         .HasForeignKey(aa => aa.ActivityId);
+
+      // One Activity with many comment
+      builder.Entity<Comment>()
+        .HasOne(a => a.Activity)
+        .WithMany(c => c.Comments)
+        .OnDelete(DeleteBehavior.Cascade);  // delete the Activity also delete the related comment
     }
   }
 }

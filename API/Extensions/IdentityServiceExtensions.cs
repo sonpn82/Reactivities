@@ -39,6 +39,20 @@ namespace API.Extensions
                             ValidateIssuer = false,
                             ValidateAudience = false
                         };
+                        // for signalR authorization
+                        opt.Events = new JwtBearerEvents
+                        {
+                            OnMessageReceived = context => 
+                            {
+                                var accessToken = context.Request.Query["access_token"]; // this query name must be same in client side
+                                var path = context.HttpContext.Request.Path;
+                                if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/chat")))  // /chat is our API end point for comment
+                                {
+                                    context.Token = accessToken;
+                                }
+                                return Task.CompletedTask;
+                            }
+                        };
                     });
 
             // to confirm if user is host of an event or not

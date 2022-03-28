@@ -246,4 +246,10 @@ export default class ActivityStore {
       runInAction (() => this.loading = false);
     }
   }
+
+  // clear the selected activity from memory
+  // if not clear then ChatHub will have initial connection error when switch from activity to other activity
+  clearSelectedActivity = () => {
+    this.selectedActivity = undefined;
+  }
 }

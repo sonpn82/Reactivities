@@ -32,7 +32,12 @@ namespace API.Extensions
             {
                 opt.AddPolicy("CorsPolicy", policy =>
                 {  // Allow localhost:3000 to access API data
-                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
+                    policy.
+                        AllowAnyMethod().
+                        AllowAnyHeader().
+                        AllowCredentials().  // for SignalR - in creating comments 
+                        WithOrigins("http://localhost:3000");
+                
                 });
             });
             // Add mediator service - tell where mediator are / where handler is
@@ -41,6 +46,8 @@ namespace API.Extensions
             services.AddScoped<IUserAccessor, UserAccessor>();  // to get the username of current user from anywhere in our app
             services.AddScoped<IPhotoAccessor, PhotoAccessor>();  // add service to allow access photo in cloudinary            
             services.Configure<CloudinarySettings>(config.GetSection("Cloudinary")); // Cloudinary = section name in Appsettings.json
+            services.AddSignalR();  // for adding comment and send comment to all activity participants in real time
+            
             return services;
         }
     }

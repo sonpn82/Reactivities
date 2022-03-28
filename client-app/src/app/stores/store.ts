@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import ActivityStore from "./activityStore";
+import CommentStore from "./commentStore";
 import CommonStore from "./commonStore";
 import ModalStore from "./modalStore";
 import ProfileStore from "./profileStore";
@@ -12,6 +13,7 @@ interface Store {
   userStore: UserStore
   modalStore: ModalStore
   profileStore: ProfileStore
+  commentStore: CommentStore
 }
 
 // store to store all the state in our app
@@ -20,7 +22,8 @@ export const store: Store = {
   commonStore: new CommonStore(),  // common store to store state related to error
   userStore: new UserStore(),  // user store to store state relate to user login, register or current user
   modalStore: new ModalStore(), // store state for login part 
-  profileStore: new ProfileStore() // store state for profile - profile state and profileLoading state
+  profileStore: new ProfileStore(), // store state for profile - profile state and profileLoading state
+  commentStore: new CommentStore() // store state for comment
 }
 
 export const StoreContext = createContext(store);

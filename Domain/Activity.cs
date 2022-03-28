@@ -21,5 +21,7 @@ namespace Domain
         // a joint table of ActivityAttendee is created to set the many to many relation between Acvitity and User table
         // set initial val is list of attendees to avoid object not refer to instance of object error
         public ICollection<ActivityAttendee>? Attendees { get; set; } = new List<ActivityAttendee>();
+        // an array of comment for each activity - comment saved in comment table
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }
