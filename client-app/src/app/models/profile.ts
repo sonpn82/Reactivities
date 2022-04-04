@@ -5,7 +5,10 @@ export interface Profile {  // all fields must have exact same name with backend
   displayName: string;  // same with prop in AppUser table
   image?: string;
   bio?: string;  // same with prop in AppUser table
-  photos?: Photo[]
+  followersCount: number;
+  followingCount: number;
+  following: boolean;
+  photos?: Photo[];
 }
 
 // this class create an object that contains some prop of User interface - not have token prop

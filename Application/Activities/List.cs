@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Core;
+using Application.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Domain;
@@ -26,11 +27,13 @@ namespace Application.Activities
     {
       private readonly DataContext _context;
       private readonly IMapper _mapper;
+      private readonly IUserAccessor _userAccessor;
 
-      public Handler(DataContext context, IMapper mapper)
+      public Handler(DataContext context, IMapper mapper, IUserAccessor userAccessor)
       {
-        _context = context;
-        _mapper = mapper;
+        _userAccessor = userAccessor;  // to get currentuser for passing down in mapper for follower/folowing feature
+        _context = context;  // to get activities data
+        _mapper = mapper;  // for data mapping
       }
 
         // Task is an asynchronos opeartion that return a value
@@ -39,7 +42,8 @@ namespace Application.Activities
         {  // ToListAsync is from Entity framework
            // cancellation token to handle when user cancel the data loading 
            var activities = await _context.Activities
-                .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider)  // projected mapping from activity to activityDto
+                .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider, 
+                  new {currentUsername = _userAccessor.GetUsername()})  // projected mapping from activity to activityDto
                 .ToListAsync(cancellationToken);
    
             return Result<List<ActivityDto>>.Success(activities);     // change from Activity to ActivityDto to avoid infinite loop error

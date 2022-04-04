@@ -31,6 +31,9 @@ namespace Persistence
     // Comment table name
     public DbSet<Comment> Comments {get; set;}
 
+    // Following table name
+    public DbSet<UserFollowing> UserFollowings {get; set;}
+
     // to config many to many relationship between Activity table and Attendee table
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -56,6 +59,24 @@ namespace Persistence
         .HasOne(a => a.Activity)
         .WithMany(c => c.Comments)
         .OnDelete(DeleteBehavior.Cascade);  // delete the Activity also delete the related comment
+      
+      // following and follower features
+      builder.Entity<UserFollowing>(b => 
+      {
+        b.HasKey(k => new {k.ObserverId, k.TargetId});  // the 2 columns in UserFollowing table - also 2 primary keys
+        
+        // one Observer (AppUser) has many following
+        b.HasOne(o => o.Observer)
+          .WithMany(f => f.Followings)
+          .HasForeignKey(o => o.ObserverId)  // 1 foreign key with appuser table id column
+          .OnDelete(DeleteBehavior.Cascade);  // delete user also delete following
+
+        // one Target (AppUser) has many followers
+        b.HasOne(o => o.Target)
+          .WithMany(f => f.Followers)
+          .HasForeignKey(o => o.TargetId)  // another foreign key with appuser able
+          .OnDelete(DeleteBehavior.Cascade);  // delete user also delete follower
+      });
     }
   }
 }

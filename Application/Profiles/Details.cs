@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Core;
+using Application.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using MediatR;
@@ -20,11 +21,13 @@ namespace Application.Profiles
 
         public class Handler : IRequestHandler<Query, Result<Profile>>
         {
-      private readonly DataContext _context; // database
+      private readonly DataContext _context; // database to get users data
       private readonly IMapper _mapper;  // automapper to map prop between objects
+      private readonly IUserAccessor _userAccessor;  // to get current user and passdown to mappers for following feature
 
-      public Handler(DataContext context, IMapper mapper)
-            {
+      public Handler(DataContext context, IMapper mapper, IUserAccessor userAccessor)
+      {
+        _userAccessor = userAccessor;
         _context = context;
         _mapper = mapper;  
       }
@@ -32,7 +35,8 @@ namespace Application.Profiles
       public async Task<Result<Profile>> Handle(Query request, CancellationToken cancellationToken)
       {
         var user = await _context.Users
-            .ProjectTo<Profile>(_mapper.ConfigurationProvider)  // map a Users object to profile object
+            .ProjectTo<Profile>(_mapper.ConfigurationProvider, 
+              new {currentUsername = _userAccessor.GetUsername()})  // map a Users object to profile object
             .SingleOrDefaultAsync(x => x.Username == request.Username);
 
         return Result<Profile>.Success(user!);

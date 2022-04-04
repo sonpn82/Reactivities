@@ -112,7 +112,9 @@ const Profiles = {
   // set a photo to be main photo using API end point
   setMainPhoto: (id: string) => requests.post(`/photos/${id}/setMain`, {}),
   deletePhoto: (id: string) => requests.del(`/photos/${id}`),
-  updateProfile: (profile: Partial<Profile>) => requests.put(`/profiles`, profile) // only use part of Profile so Partial
+  updateProfile: (profile: Partial<Profile>) => requests.put(`/profiles`, profile), // only use part of Profile so Partial
+  updateFollowing: (username: string) => requests.post(`/follow/${username}`, {}),  // change following status from api backend
+  listFollowings: (username: string, predicate: string) => requests.get<Profile[]>(`/follow/${username}?predicate=${predicate}`)
 }
 
 // wrap all in the agent object

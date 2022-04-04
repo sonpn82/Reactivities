@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Core;
+using Application.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Domain;
@@ -23,19 +24,22 @@ namespace Application.Activities
         // Handler to handle the Query request
         public class Handler: IRequestHandler<Query, Result<ActivityDto>>
         {
-            private readonly DataContext _context;
-        private readonly IMapper _mapper;
+            private readonly DataContext _context;  // to get Activities data
+            private readonly IMapper _mapper;  // to map data
+            private readonly IUserAccessor _userAccessor;  // to get current user and passdown to mapper for following feature
 
-         public Handler(DataContext context, IMapper mapper)
+        public Handler(DataContext context, IMapper mapper, IUserAccessor userAccessor)
             {
                 _context = context;
                 _mapper = mapper;
+                _userAccessor = userAccessor;
             }
 
         public async Task<Result<ActivityDto>> Handle(Query request, CancellationToken cancellationToken)
             {
                 var activity = await _context.Activities
-                    .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider)   // project from activity to activityDto  (AutoMapper)
+                    .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider, 
+                        new {currentUsername = _userAccessor.GetUsername()})   // project from activity to activityDto  (AutoMapper)
                     .FirstOrDefaultAsync(x => x.Id == request.Id);
 
                 return Result<ActivityDto>.Success(activity!);

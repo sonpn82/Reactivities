@@ -247,6 +247,19 @@ export default class ActivityStore {
     }
   }
 
+  // update number of follower depends on following condition
+  // following condition is toggle by a button
+  updateAttendeeFollowing = (username: string) => {
+    this.activityResistry.forEach(activity => {
+      activity.attendees.forEach(attendee => {
+        if (attendee.username === username) {
+          attendee.following ? attendee.followersCount-- : attendee.followersCount++;
+          attendee.following = !attendee.following;
+        }
+      })
+    })
+  }
+
   // clear the selected activity from memory
   // if not clear then ChatHub will have initial connection error when switch from activity to other activity
   clearSelectedActivity = () => {

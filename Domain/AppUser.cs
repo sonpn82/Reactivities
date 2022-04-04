@@ -15,5 +15,9 @@ namespace Domain
         public ICollection<ActivityAttendee>? Activities { get; set; }
         // one to many relationship - one Appuser has many photos
         public ICollection<Photo>? Photos {get; set;}
+        // self-referencing many to many relationship - user UserFollowing join table
+        public ICollection<UserFollowing>? Followings { get; set; }
+        // self-referencing many to many relationship - user UserFollowing join table
+        public ICollection<UserFollowing>? Followers { get; set; }
     }
 }

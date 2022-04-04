@@ -10,12 +10,16 @@ import ProfileHeader from "./ProfileHeader";
 export default observer(function ProfilePage() {
   const {username} = useParams<{username: string}>();
   const {profileStore} = useStore();
-  const {loadingProfile, loadProfile, profile} = profileStore;
+  const {loadingProfile, loadProfile, profile, setActiveTab} = profileStore;
 
   // to render when program start
   useEffect(() => {
     loadProfile(username!);
-  }, [loadProfile, username])
+    // reset the activeTab state when we finish rendering this page
+    return () => {
+      setActiveTab(0);
+    }
+  }, [loadProfile, username, setActiveTab])
 
   if (loadingProfile) return <LoadingComponent content="Loading profile..." />
 
