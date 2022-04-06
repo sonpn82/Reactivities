@@ -1,9 +1,11 @@
-import { makeAutoObservable, runInAction } from "mobx";
+import { makeAutoObservable, reaction, runInAction } from "mobx";
 import agent from "../api/agent";
 import { Activity, ActivityFormValues } from "../models/activity";
 import {format} from 'date-fns';  // to format Date object
 import { store } from "./store";
 import { Profile } from "../models/profile";
+import { Pagination, PagingParams } from "../models/pagination";
+
 
 export default class ActivityStore {
 
@@ -13,9 +15,75 @@ export default class ActivityStore {
   editMode = false;
   loading = false;
   loadingInitial = false;
+  pagination: Pagination | null = null;
+  pagingParams = new PagingParams();
+  predicate = new Map().set('all', true);  // state for filtering by isHost, isGoing and startDate
+
 
   constructor() {
-    makeAutoObservable(this)
+    makeAutoObservable(this);
+
+    // automatically running below reaction when some relevant state changed
+    // run when predicated.keys change value - reset when different filter is selected
+    reaction(
+      () => this.predicate.keys(),
+      () => {
+        this.pagingParams = new PagingParams();
+        this.activityResistry.clear();
+        this.loadActivities();
+      }
+    )
+  }
+
+  // set the paging params state
+  setPagingParams = (pagingParams: PagingParams) => {
+    this.pagingParams = pagingParams;
+  }
+
+  // Set the filtering state
+  setPredicate = (predicate: string, value: string | Date) => {
+    // reset the predicate 1st (isGoing, isHost) but keep the startDate filtering
+    const resetPredicate = () => {
+      this.predicate.forEach((value, key) => {
+        if (key !== 'startDate') this.predicate.delete(key);
+      })
+    }
+
+    switch (predicate) {
+      case 'all':
+        resetPredicate();
+        this.predicate.set('all', true);
+        break;
+      case 'isGoing':
+        resetPredicate();
+        this.predicate.set('isGoing', true);
+        break;
+      case 'isHost':
+        resetPredicate();
+        this.predicate.set('isHost', true);
+        break;
+      case 'startDate':
+        this.predicate.delete('startDate');
+        this.predicate.set('startDate', value);
+    }
+  }
+
+  // params for axios query parameters
+  get axiosParams() {
+    const params = new URLSearchParams();
+    params.append('pageNumber', this.pagingParams.pageNumber.toString());
+    params.append('pageSize', this.pagingParams.pageSize.toString());
+
+    // filtering
+    this.predicate.forEach((value, key) => {
+      if (key === 'startDate') {
+        params.append(key, (value as Date).toISOString());
+      } else {
+        params.append(key, value);
+      }
+    })
+
+    return params;
   }
 
   // computed function to sort activities by date
@@ -43,20 +111,26 @@ export default class ActivityStore {
   loadActivities = async () => {   
     this.loadingInitial = true;
     try {      
-      // get the list of activity from database
-      const activities = await agent.Activities.list();     
+      // get the list of activity from database  - with pagination, get the pagination 1st - also add the query parameters
+      const result = await agent.Activities.list(this.axiosParams);     
    
-        // format the date string of each activity
-      activities.forEach(activity => {
+        // format the date string of each activity - result.data = activities array
+      result.data.forEach(activity => {
         this.setActivity(activity);
       })
-
+      // set the pagination state
+      this.setPagination(result.pagination);
       this.setLoadingInitial(false);         
 
     } catch (error) {
       console.log(error);
       this.setLoadingInitial(false);
     }
+  }
+
+  // set the pagination state
+  setPagination = (pagination: Pagination) => {
+    this.pagination = pagination;
   }
 
   // load an activity from its id

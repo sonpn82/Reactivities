@@ -24,5 +24,13 @@ namespace API.Controllers
         {
             return HandleResult(await Mediator.Send(command));
         }
+
+        // API end point to show list of user attended activities filtered by predicate
+        [HttpGet("{username}/activities")]
+        public async Task<IActionResult> GetUserActivities(string username, string predicate)
+        {
+            return HandleResult(await Mediator.Send(new ListActivities.Query
+                {Username = username, Predicate = predicate}));
+        }
     }
 }

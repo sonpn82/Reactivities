@@ -26,3 +26,11 @@ export interface Photo {
   url: string;
   isMain: boolean; 
 }
+
+// for showing activity in user profiles page, filtered by predicate - same with backend
+export interface UserActivity {
+  id: string;
+  title: string;
+  category: string;
+  date: Date;
+}

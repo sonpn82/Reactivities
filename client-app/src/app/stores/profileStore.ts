@@ -1,10 +1,11 @@
 import { makeAutoObservable, reaction, runInAction } from "mobx";
 import agent from "../api/agent";
-import { Photo, Profile } from "../models/profile";
+import { Photo, Profile, UserActivity } from "../models/profile";
 import { store } from "./store";
 
 // contain 2 states about profile: the user profile info and the loadingProfile state
 export default class ProfileStore {
+  currentUserProfile: Profile | null = null;
   profile: Profile | null = null;
   loadingProfile = false;
   uploading = false;
@@ -12,6 +13,8 @@ export default class ProfileStore {
   loadingFollowings = false;
   followings: Profile[] = [];
   activeTab = 0;  // to know thich tab pane is selected in  user profile - for follower and following
+  userActivities: UserActivity[] = [];  // state to show list of user attended activities in profile page
+  loadingActivities = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -186,4 +189,21 @@ export default class ProfileStore {
       runInAction(() => this.loadingFollowings = false);
     }
   }
+
+  // get list of user attended activities in profile page base on predicate
+  // set the UserActivities state
+  loadUserActivities =async (username:string, predicate?: string) => {
+    this.loadingActivities = true;
+    try {
+      const activities = await agent.Profiles.listActivities(username, predicate!);
+      runInAction(() => {
+        this.userActivities = activities;
+        this.loadingActivities = false;
+      })
+    } catch (error) {
+      console.log(error)
+      runInAction(() => this.loadingActivities = false);
+    }
+  }
+
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Activities;
+using Application.Core;
 using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +17,11 @@ namespace API.Controllers
   {
     // Using Mediator to access to database data - get, put, del ...
     // return list of all Activity
-    [HttpGet]  // /api/activities
-    public async Task<IActionResult> GetActivities()
+    [HttpGet]  // /api/activities?pageNumber=x&pageSize=y
+    public async Task<IActionResult> GetActivities([FromQuery]ActivityParams param)  // add paging here - ActivityParams for filtering
     { 
       // Mediator is passdown from its parent class of BaseApiController
-        return HandleResult(await Mediator.Send(new List.Query()));
+        return HandlePagedResult(await Mediator.Send(new List.Query{Params = param}));  // use HandlePageResult instead of HandleResult to get paging
     }
 
     // return activity with same id 

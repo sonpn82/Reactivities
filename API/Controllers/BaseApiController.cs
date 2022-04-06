@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Application.Core;
+using API.Extensions;
 
 namespace API.Controllers
 {
@@ -25,6 +26,24 @@ namespace API.Controllers
             if (result == null) return NotFound();  // handle the null case - not provided by Result.cs
             if (result.IsSuccess && result.Value != null)
                 return Ok(result.Value);
+            if (result.IsSuccess && result.Value == null)
+                return NotFound();
+                
+            return BadRequest(result.Error);
+        }
+
+        // to handle the paged result - we need to add the pagination header to the http response
+        protected ActionResult HandlePagedResult<T>(Result<PagedList<T>> result)
+        {
+            if (result == null) return NotFound();  // handle the null case - not provided by Result.cs
+            if (result.IsSuccess && result.Value != null)
+            {
+                // add the pagination header
+                Response.AddPaginationHeader(result.Value.CurrentPage, result.Value.PageSize, 
+                    result.Value.TotalCount, result.Value.TotalPages);
+                return Ok(result.Value);
+            }
+                
             if (result.IsSuccess && result.Value == null)
                 return NotFound();
                 

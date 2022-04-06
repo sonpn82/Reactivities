@@ -2,7 +2,8 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import { toast } from "react-toastify";  // show error message as a flash on bottom of page
 import { history } from "../..";
 import { Activity, ActivityFormValues } from "../models/activity";
-import { Photo, Profile } from "../models/profile";
+import { PaginatedResult } from "../models/pagination";
+import { Photo, Profile, UserActivity } from "../models/profile";
 import { User, UserFormValues } from "../models/user";
 import { store } from "../stores/store";
 
@@ -27,7 +28,17 @@ axios.interceptors.request.use((config: AxiosRequestConfig) => {
 axios.interceptors.response.use(async response => 
   // the resolve part
 {  
-  await sleep(1000);
+  await sleep(1000);  // to simulate the server response waiting time
+  // get the pagination header
+  const pagination = response.headers['pagination'];
+
+  // return a PaginatedResult
+  if (pagination) {
+    response.data = new PaginatedResult(response.data, JSON.parse(pagination));
+    return response as AxiosResponse<PaginatedResult<any>>;
+  }
+
+  // or a normal response
   return response; 
 }, 
   // the reject part
@@ -82,7 +93,8 @@ const requests = {
 // create Activities object which use request object to obtain list of act, 
 // detail of act, update, del, attend act by our API end points
 const Activities = {
-  list: () => requests.get<Activity[]>('/activities'),
+  list: (params: URLSearchParams) => axios.get<PaginatedResult<Activity[]>>('/activities', {params})
+    .then(responseBody),  // add PaginatedResult to Activity for paging and also the search query params
   details: (id: string) => requests.get<Activity>(`/activities/${id}`),
   create: (activity: ActivityFormValues) => requests.post<void>('/activities', activity),
   update: (activity: ActivityFormValues) => requests.put<void>(`/activities/${activity.id}`, activity),
@@ -114,7 +126,8 @@ const Profiles = {
   deletePhoto: (id: string) => requests.del(`/photos/${id}`),
   updateProfile: (profile: Partial<Profile>) => requests.put(`/profiles`, profile), // only use part of Profile so Partial
   updateFollowing: (username: string) => requests.post(`/follow/${username}`, {}),  // change following status from api backend
-  listFollowings: (username: string, predicate: string) => requests.get<Profile[]>(`/follow/${username}?predicate=${predicate}`)
+  listFollowings: (username: string, predicate: string) => requests.get<Profile[]>(`/follow/${username}?predicate=${predicate}`),
+  listActivities: (username: string, predicate: string) => requests.get<UserActivity[]>(`/profiles/${username}/activities?predicate=${predicate}`)
 }
 
 // wrap all in the agent object
