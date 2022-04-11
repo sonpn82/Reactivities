@@ -60,7 +60,7 @@ namespace API
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // use our customized exception middle ware
-            app.UseMiddleware<ExceptionMiddleware>();
+            app.UseMiddleware<ExceptionMiddleware>();         
 
             if (env.IsDevelopment())
             {
@@ -73,6 +73,12 @@ namespace API
 
             app.UseRouting();
 
+            // for production - run the default index.html
+            app.UseDefaultFiles();
+
+            // for production - server static files to client - in wwwroot folder after run build (if not names root then must do additional config)
+            app.UseStaticFiles();
+
             app.UseCors("CorsPolicy"); // to allow localhost:3000 to access API data
             // Authentication must be put before Authorization
             app.UseAuthentication();
@@ -83,6 +89,7 @@ namespace API
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chat");  // for adding and sending comments to all activity participant in real time
+                endpoints.MapFallbackToController("Index", "Fallback"); // for production, fallback controller
             });
         }
     }

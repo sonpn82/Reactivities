@@ -4,7 +4,7 @@ import axios from 'axios';
 import ValidationErrors from './ValidationErrors';
 
 export default function TestErrors() {
-    const baseUrl = 'http://localhost:5000/api/'
+    const baseUrl = process.env.REACT_APP_API_URL;  // react app environtment variable should start with REACT_APP_
 
     // errors state & setErrors action to modify this state
     const [errors, setErrors] = useState(null);

@@ -71,7 +71,7 @@ export default observer(function ActivityForm() {
       };
       createActivity(newActivity).then(() => navigate(`/activities/${newActivity.id}`));
     } else {
-      // update an activity
+      // update an activity 
       updateActivity(activity).then(() => navigate(`/activities/${activity.id}`));
     }
   } 

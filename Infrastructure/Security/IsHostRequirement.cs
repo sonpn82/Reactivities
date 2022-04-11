@@ -28,12 +28,12 @@ namespace Infrastructure.Security
     }
 
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, IsHostRequirement requirement)
-    {
+    {      
         // get userId from token-Claims-NameIdentifier in User database
         var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // check if this id is valid - it is in database or not
-        if (userId == null) return Task.CompletedTask;
+        if (userId == null) return Task.CompletedTask;     
 
         // get activity Id from the parameter in the link
         var activityId = Guid.Parse(_httpContextAccessor.HttpContext?.Request.RouteValues.
@@ -43,13 +43,15 @@ namespace Infrastructure.Security
         var attendee = _dbContext.ActivityAttendees
                         .AsNoTracking()  // must use AsNoTracking here, if not then when edit an activity the attendee object here will persist and make HostUSerName become null, attendees become empty array
                         .SingleOrDefaultAsync(x => x.AppUserId == userId && x.ActivityId == activityId)
-                        .Result;
+                        .Result;          
 
         // if no attendee is found then exit
-        if (attendee == null) return Task.CompletedTask;
-
+        if (attendee == null) return Task.CompletedTask; 
+  
         // if attendee is Host then requirement is satisfied
-        if (attendee.IsHost) context.Succeed(requirement);
+        if (attendee.IsHost) {
+          context.Succeed(requirement);
+        }        
 
         return Task.CompletedTask;
     }

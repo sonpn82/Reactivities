@@ -14,7 +14,8 @@ const sleep = (delay: number) => {
   })
 }
 
-axios.defaults.baseURL = 'http://localhost:5000/api';
+// react app environtment variable should start with REACT_APP_
+axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 
 // intercept the user request, check if store has token,
 // if has token then add the Bearer + token to request header
@@ -28,7 +29,7 @@ axios.interceptors.request.use((config: AxiosRequestConfig) => {
 axios.interceptors.response.use(async response => 
   // the resolve part
 {  
-  await sleep(1000);  // to simulate the server response waiting time
+  if (process.env.NODE_ENV === 'development') await sleep(1000);  // to simulate the server response waiting time
   // get the pagination header
   const pagination = response.headers['pagination'];
 

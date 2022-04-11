@@ -17,6 +17,7 @@ namespace API
     {
         public static async Task Main(string[] args)
         {
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             var host = CreateHostBuilder(args).Build();
             
             using var scope = host.Services.CreateScope();
@@ -26,6 +27,7 @@ namespace API
             {
                 // for activity seeding
                 var context = services.GetRequiredService<DataContext>();
+                
                 // for user seeding
                 var userManager = services.GetRequiredService<UserManager<AppUser>>();
                 // Apply migration to database or create the database it it not existed

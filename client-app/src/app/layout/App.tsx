@@ -16,6 +16,7 @@ import { useStore } from '../stores/store';
 import LoadingComponent from './LoadingComponent';
 import ModalContainer from '../common/modals/ModalContainer';
 import ProfilePage from '../../features/profiles/ProfilePage';
+import { PrivateRoute } from './PrivateRoute';
 
 function App() { 
   const {commonStore, userStore} = useStore();
@@ -56,12 +57,12 @@ function Nav() {
       <NavBar /> 
       <Container style={{marginTop: '7em'}}>  
         <Routes>        
-          <Route path='/activities' element={<ActivityDashboard />} />
-          <Route path='/activities/:id' element={<ActivityDetails />} />
-          <Route key={location.key} path='/createActivity' element={<ActivityForm />} />
-          <Route key={location.key} path='/manage/:id' element={<ActivityForm />} />
-          <Route path='/profiles/:username' element={<ProfilePage />} />
-          <Route path='/errors' element={<TestErrors />} />
+          <Route path='/activities' element={<PrivateRoute component={ActivityDashboard} />} />
+          <Route path='/activities/:id' element={<PrivateRoute component={ActivityDetails} />} />
+          <Route key={location.key} path='/createActivity' element={<PrivateRoute component={ActivityForm} />} />
+          <Route key={location.key} path='/manage/:id' element={<PrivateRoute component={ActivityForm} />} />
+          <Route path='/profiles/:username' element={<PrivateRoute component={ProfilePage} />} />
+          <Route path='/errors' element={<PrivateRoute component={TestErrors} />} />
           <Route path='/server-error' element={<ServerError />} />
           <Route path='/login' element={<LoginForm />} />
           <Route path='*' element={<NotFound />} />

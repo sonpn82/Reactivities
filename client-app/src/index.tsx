@@ -9,6 +9,7 @@ import reportWebVitals from './reportWebVitals';
 import { store, StoreContext } from './app/stores/store';
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';  // for react-router V6 use unstable_HistoryRouter
 import { createBrowserHistory} from 'history';
+import ScrollToTop from './app/layout/ScrollToTop';  // to stay at top of page when switch component
 
 // not import semaintic UI.min.css - cause error - using cdn link instead
 
@@ -18,6 +19,7 @@ ReactDOM.render(  // should remove strictmode of 3rd party app has error
   //<React.StrictMode>
   <StoreContext.Provider value={store}>
     <HistoryRouter history={history}>
+      <ScrollToTop />  
       <App />
     </HistoryRouter>     
   </StoreContext.Provider>,

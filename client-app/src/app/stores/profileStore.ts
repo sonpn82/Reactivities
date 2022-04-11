@@ -5,7 +5,6 @@ import { store } from "./store";
 
 // contain 2 states about profile: the user profile info and the loadingProfile state
 export default class ProfileStore {
-  currentUserProfile: Profile | null = null;
   profile: Profile | null = null;
   loadingProfile = false;
   uploading = false;
@@ -14,7 +13,7 @@ export default class ProfileStore {
   followings: Profile[] = [];
   activeTab = 0;  // to know thich tab pane is selected in  user profile - for follower and following
   userActivities: UserActivity[] = [];  // state to show list of user attended activities in profile page
-  loadingActivities = false;
+  loadingActivities = false;  // show the loading symbol for user profile activities
 
   constructor() {
     makeAutoObservable(this);
