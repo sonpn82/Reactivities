@@ -60,13 +60,40 @@ namespace API
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // use our customized exception middle ware
-            app.UseMiddleware<ExceptionMiddleware>();         
+            app.UseMiddleware<ExceptionMiddleware>();     
+
+            // header security tightening using 3rd party addon installation: NWebsec.AspNetCore.Middleware
+            // after pulish to heroku
+            app.UseXContentTypeOptions();
+            app.UseReferrerPolicy(opt => opt.NoReferrer());
+            app.UseXXssProtection(opt => opt.EnabledWithBlockMode());
+            app.UseXfo(opt => opt.Deny());
+            app.UseCsp(opt => opt
+                .BlockAllMixedContent()
+                .StyleSources(s => s.Self().CustomSources("https://cdn.jsdelivr.net","https://fonts.googleapis.com"))
+                .FontSources(s => s.Self().CustomSources("https://fonts.gstatic.com", "data:","https://googleapis.com","https://cdn.jsdelivr.net"))
+                .FormActions(s => s.Self())
+                .FrameAncestors(s => s.Self())
+                .ImageSources(s => s.Self().CustomSources("https://res.cloudinary.com"))
+                .ScriptSources(s => s.Self())
+            );
+
+            // end of security settings
 
             if (env.IsDevelopment())
             {
                 //app.UseDeveloperExceptionPage();  remove this one
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebAPIv5 v1"));
+            }
+            else {
+                // this code is for production - after deploy to heroku
+                // add more security
+                app.Use(async (context, next) => 
+                {
+                    context.Response.Headers.Add("Strict-Transport-Security", "max-age=31536000");  // 315360000 = 1 year in secs
+                    await next.Invoke();
+                });
             }
 
             //app.UseHttpsRedirection();
