@@ -22,10 +22,16 @@ function App() {
   const {commonStore, userStore} = useStore();
 
   useEffect(() => {
+    // check if token exist in local storage to enable quick login
     if (commonStore.token) {
       userStore.getUser().finally(() => commonStore.setAppLoaded());
     } else {
-      commonStore.setAppLoaded();
+      // not have token ==> show user the homepage with login      
+      // commonStore.setAppLoaded();  do not use this when we use facebook login
+      
+      // with facebook login, check if facebook of user is log in or not and set the app based on that
+      userStore.getFacebookLoginStatus().then(() => commonStore.setAppLoaded());
+
     }
   }, [commonStore, userStore])
 

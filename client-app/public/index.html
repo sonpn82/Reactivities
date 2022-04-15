@@ -29,6 +29,21 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <!--
+      Below is javascript to enable facebook login
+    -->
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId            : '1851619598377706',
+          autoLogAppEvents : true,
+          xfbml            : true,
+          version          : 'v13.0'
+        });
+      };
+    </script>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+
     <div id="root"></div>
     <!--
       This HTML file is a template.

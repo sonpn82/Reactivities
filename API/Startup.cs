@@ -70,12 +70,33 @@ namespace API
             app.UseXfo(opt => opt.Deny());
             app.UseCsp(opt => opt
                 .BlockAllMixedContent()
-                .StyleSources(s => s.Self().CustomSources("https://cdn.jsdelivr.net","https://fonts.googleapis.com"))
-                .FontSources(s => s.Self().CustomSources("https://fonts.gstatic.com", "data:","https://googleapis.com","https://cdn.jsdelivr.net"))
+                .StyleSources(s => s.Self().CustomSources
+                    (
+                        "https://cdn.jsdelivr.net",
+                        "https://fonts.googleapis.com",
+                        "sha256-yChqzBduCCi4o4xdbXRXh4U/t1rP4UUUMJt+rB+ylUI="
+                    ))
+                .FontSources(s => s.Self().CustomSources
+                    (
+                        "https://fonts.gstatic.com", 
+                        "data:",
+                        "https://googleapis.com",
+                        "https://cdn.jsdelivr.net"
+                    ))
                 .FormActions(s => s.Self())
                 .FrameAncestors(s => s.Self())
-                .ImageSources(s => s.Self().CustomSources("https://res.cloudinary.com"))
-                .ScriptSources(s => s.Self())
+                .ImageSources(s => s.Self().CustomSources
+                    (
+                        "https://res.cloudinary.com", 
+                        "https://www.facebook.com",
+                        "https://platform-lookaside.fbsbx.com"
+                    ))
+                .ScriptSources(s => s.Self().CustomSources
+                    (
+                        "https://www.facebook.com",
+                        "https://connect.facebook.net",
+                        "sha256-CVapyt2yaKPS6X25sJHXdTUvyYS+CaqPHqx/ty9xO6Y="
+                    ))
             );
 
             // end of security settings

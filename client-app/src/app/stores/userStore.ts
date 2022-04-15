@@ -7,6 +7,8 @@ import { history } from "../..";
 // userStore to store state related to user login, current user
 export default class UserStore {
   user: User | null = null;  // user state, initial val = null
+  fbAccessToken: string | null = null; // for facebook login - save the token
+  fbLoading = false;  // for facebook login
 
   constructor() {
     makeAutoObservable(this)
@@ -87,5 +89,42 @@ export default class UserStore {
   // set displayName for user
   setDisplayName = (name: string) => {
     if (this.user) this.user.displayName = name;
+  }
+
+  // set the fbAccessToken
+  // check if user facebook is login or not
+  getFacebookLoginStatus = async () => {
+    window.FB.getLoginStatus(response => {
+      if (response.status === 'connected') {
+        this.fbAccessToken = response.authResponse.accessToken;
+      }
+    })
+  }
+
+  // for facebook login
+  facebookLogin = () => {
+    this.fbLoading = true;
+    const apiLogin = (accessToken: string) => {
+      agent.Account.fbLogin(accessToken).then(user => {
+        store.commonStore.setToken(user.token);
+        runInAction(() => {
+          this.user = user;
+          this.fbLoading = false;
+        })
+        history.push('/activities');
+      }).catch(error => {
+        console.log(error);
+        runInAction(() => this.fbLoading = false);
+      })
+    }
+
+    if (this.fbAccessToken) {
+      apiLogin(this.fbAccessToken);      
+    } else {
+      window.FB.login(response => {
+        apiLogin(response.authResponse.accessToken);
+      }, {scope: 'public_profile, email'})
+    }
+
   }
 }
