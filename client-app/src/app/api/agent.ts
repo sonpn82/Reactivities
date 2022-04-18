@@ -44,7 +44,7 @@ axios.interceptors.response.use(async response =>
 }, 
   // the reject part
   (error: AxiosError) => {
-  const {data, status, config} = error.response!;  // add ! to remove type check
+  const {data, status, config, headers} = error.response!;  // add ! to remove type check, add headers for token check
 
   switch (status) {
     case 400:
@@ -68,7 +68,14 @@ axios.interceptors.response.use(async response =>
       } 
       break;
     case 401:
-      toast.error('unauthorized'); // show toast error of unauthorized
+      if (status === 401 && headers['www-authenticate'].startsWith('Bearer error="invalid_token"'))
+      {
+        // add condition for session expired after app finish
+        store.userStore.logout();
+        toast.error('Session expired - please login again');
+      } else {
+        toast.error('unauthorized'); // show toast error of unauthorized
+      }      
       break;
     case 404:
       history.push('/not-found');  // redirect to notfound page
@@ -109,7 +116,8 @@ const Account = {
   current: () => requests.get<User>('/account'),
   login: (user: UserFormValues) => requests.post<User>('/account/login', user),
   register: (user: UserFormValues) => requests.post<User>('/account/register', user),  
-  fbLogin: (accessToken: string) => requests.post<User>(`/account/fbLogin?accessToken=${accessToken}`, {})
+  fbLogin: (accessToken: string) => requests.post<User>(`/account/fbLogin?accessToken=${accessToken}`, {}),
+  refreshToken: () => requests.post<User>('/account/refreshToken', {})  // after app finish - to refresh the access token
 }
 
 // get the use profile from user name using API profiles end point

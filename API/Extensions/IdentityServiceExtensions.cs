@@ -37,7 +37,9 @@ namespace API.Extensions
                             ValidateIssuerSigningKey = true,
                             IssuerSigningKey = key,
                             ValidateIssuer = false,
-                            ValidateAudience = false
+                            ValidateAudience = false,
+                            ValidateLifetime = true,  // add to check for expired token
+                            ClockSkew = TimeSpan.Zero  // not automatically add 5 min to token
                         };
                         // for signalR authorization
                         opt.Events = new JwtBearerEvents

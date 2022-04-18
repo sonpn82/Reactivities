@@ -84,6 +84,7 @@ namespace API.Extensions
                         AllowAnyMethod().
                         AllowAnyHeader().
                         AllowCredentials().  // for SignalR - in creating comments 
+                        WithExposedHeaders("WWW-Authenticate", "Pagination").  // add after app finsh, to expose the headers to client to access
                         WithOrigins("http://localhost:3000");
                 
                 });

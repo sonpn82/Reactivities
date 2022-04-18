@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 
 namespace API.Controllers
 {
-    [AllowAnonymous]  // allow all end points below to be accessed without authentication
+   // [AllowAnonymous]  // allow all end points below to be accessed without authentication - remove after app finish
     [ApiController]
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
@@ -39,7 +39,9 @@ namespace API.Controllers
             BaseAddress = new System.Uri("https://graph.facebook.com")
         };
     }
+
         // api/account/login
+        [AllowAnonymous]  // add after app finish
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
@@ -57,6 +59,9 @@ namespace API.Controllers
             // if login success, return an UserDto object
             if (result.Succeeded)
             {
+                // after app finsh to save token and cookie
+                await SetRefreshToken(user);
+
                 return CreateUserObject(user);
             }
 
@@ -65,6 +70,7 @@ namespace API.Controllers
         }
 
         // api/account/register
+        [AllowAnonymous]  // add after app finish
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
@@ -92,6 +98,9 @@ namespace API.Controllers
             // if ok then return the newly created user
             if (result.Succeeded)
             {
+                // after app finsh to save token and cookie
+                await SetRefreshToken(user);
+
                 return CreateUserObject(user);
             }
             // else return a bad request
@@ -107,10 +116,15 @@ namespace API.Controllers
             // also load the user photo collection
             var user = await _userManager.Users.Include(p => p.Photos)
                 .FirstOrDefaultAsync(x=> x.Email == User.FindFirstValue(ClaimTypes.Email));
+            
+            // set the cookie and save token - after app finish
+            await SetRefreshToken(user);
+            
             // return a new user object from this
             return CreateUserObject(user);
         }
 
+        [AllowAnonymous]  // add after app finish
         [HttpPost("fbLogin")]
         public async Task<ActionResult<UserDto>> FacebookLogin(string accessToken)
         {
@@ -156,7 +170,52 @@ namespace API.Controllers
 
             if (!result.Succeeded) return BadRequest("Problem creating user account");
 
+            // add after app finish
+            // to set the token to cookie & to database
+            await SetRefreshToken(user);
             return CreateUserObject(user);        
+        }
+
+        [Authorize]
+        [HttpPost("refreshToken")]
+        public async Task<ActionResult<UserDto>> RefreshToken()
+        {
+            // get token from Cookies
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            // find the user (with token) by the username in claim
+            var user = await _userManager.Users
+                .Include(r => r.RefreshTokens)
+                .Include(p => p.Photos)           
+                .FirstOrDefaultAsync(x => x.UserName == User.FindFirstValue(ClaimTypes.Name));
+
+            if (user == null) return Unauthorized();
+
+            // get the token from database, check if it is still active or not
+            var oldToken = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshToken);
+
+            if (oldToken != null && !oldToken.IsActive) return Unauthorized();
+
+            // if ok then continue
+            return CreateUserObject(user);
+        }
+
+
+        // save the token to cookie and database
+        // after app finish
+        private async Task SetRefreshToken(AppUser user)
+        {
+            var refreshToken = _tokenService.GenerateRefreshToken();
+            user.RefreshTokens.Add(refreshToken);
+            await _userManager.UpdateAsync(user);
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,  // not allow jsscript to access token
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+
+            Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOptions);
         }
 
         // create UserDto from AppUser

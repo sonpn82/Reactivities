@@ -9,6 +9,7 @@ export default class UserStore {
   user: User | null = null;  // user state, initial val = null
   fbAccessToken: string | null = null; // for facebook login - save the token
   fbLoading = false;  // for facebook login
+  refreshTokenTimeout: any;  // after app finish, for refresh token
 
   constructor() {
     makeAutoObservable(this)
@@ -27,6 +28,9 @@ export default class UserStore {
       const user = await agent.Account.login(creds);
       // if ok store the token to local storage and set the token state to that token
       store.commonStore.setToken(user.token)
+
+      this.startRefreshTokenTimer(user);  // add after app finish - to refresh token
+
       // set the user state here to that user also
       // need to user runInAction here - because need to wait from await agent...
       runInAction(() => this.user = user);
@@ -55,9 +59,12 @@ export default class UserStore {
     try {
       // get the current user using agent.Account.current
       const user = await agent.Account.current();
+      store.commonStore.setToken(user.token);  // set after app finish - for refresh token
       // set the user state to this user
       // need to user runInAction to change state after await
       runInAction(() => this.user = user);
+
+      this.startRefreshTokenTimer(user);  // add after app finish - to refresh token
     } catch (error) {
       console.log(error);
     }
@@ -68,9 +75,12 @@ export default class UserStore {
       // try to register using agent.Account.register
       const user = await agent.Account.register(creds);
       // if ok store the token to local storage and set the token state to that token
-      store.commonStore.setToken(user.token)
+      store.commonStore.setToken(user.token)      
+     
+      this.startRefreshTokenTimer(user);  // add after app finish - to refresh token
+
       // set the user state here to that user also
-      // need to user runInAction here - because need to wait from await agent...
+       // need to user runInAction here - because need to wait from await agent...
       runInAction(() => this.user = user);
       // move user to activities page after login success
       history.push('/activities')
@@ -107,6 +117,7 @@ export default class UserStore {
     const apiLogin = (accessToken: string) => {
       agent.Account.fbLogin(accessToken).then(user => {
         store.commonStore.setToken(user.token);
+        this.startRefreshTokenTimer(user);  // add after app finish - to refresh token
         runInAction(() => {
           this.user = user;
           this.fbLoading = false;
@@ -125,6 +136,29 @@ export default class UserStore {
         apiLogin(response.authResponse.accessToken);
       }, {scope: 'public_profile, email'})
     }
+  }
 
+  // after app finish - to get the refresh token from api
+  refreshToken = async () => {
+    this.stopRefreshTokenTimer();
+    try {
+      const user = await agent.Account.refreshToken();
+      runInAction(() => this.user = user);
+      store.commonStore.setToken(user.token);
+      this.startRefreshTokenTimer(user);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  private startRefreshTokenTimer(user: User) {
+    const jwtToken = JSON.parse(atob(user.token.split('.')[1]));
+    const expires = new Date(jwtToken.exp * 1000);
+    const timeout = expires.getTime() - Date.now() - (60*1000); // 60 secs
+    this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout)
+  }
+
+  private stopRefreshTokenTimer() {
+    clearTimeout(this.refreshTokenTimeout);
   }
 }

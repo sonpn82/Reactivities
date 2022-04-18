@@ -19,5 +19,7 @@ namespace Domain
         public ICollection<UserFollowing>? Followings { get; set; }
         // self-referencing many to many relationship - user UserFollowing join table
         public ICollection<UserFollowing>? Followers { get; set; }
+        // for the access token table - one AppUser has many refreshTokens
+        public ICollection<RefreshToken> RefreshTokens {get; set;} = new List<RefreshToken>();
     }
 }
