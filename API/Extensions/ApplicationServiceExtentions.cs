@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Application.Activities;
 using Application.Core;
 using Application.Interfaces;
+using Infrastructure.Email;
 using Infrastructure.Photos;
 using Infrastructure.Security;
 using MediatR;
@@ -94,6 +95,7 @@ namespace API.Extensions
             services.AddAutoMapper(typeof(MappingProfiles).Assembly);
             services.AddScoped<IUserAccessor, UserAccessor>();  // to get the username of current user from anywhere in our app
             services.AddScoped<IPhotoAccessor, PhotoAccessor>();  // add service to allow access photo in cloudinary            
+            services.AddScoped<EmailSender>();  // to get email verification service - from sendGrid
             services.Configure<CloudinarySettings>(config.GetSection("Cloudinary")); // Cloudinary = section name in Appsettings.json
             services.AddSignalR();  // for adding comment and send comment to all activity participants in real time
             

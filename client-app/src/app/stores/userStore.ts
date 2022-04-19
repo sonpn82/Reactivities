@@ -72,18 +72,24 @@ export default class UserStore {
 
   register =async (creds:UserFormValues) => {
     try {
-      // try to register using agent.Account.register
-      const user = await agent.Account.register(creds);
+      // remove below code when use email verf
+      // try to register using agent.Account.register 
+      // const user = await agent.Account.register(creds);
       // if ok store the token to local storage and set the token state to that token
-      store.commonStore.setToken(user.token)      
-     
-      this.startRefreshTokenTimer(user);  // add after app finish - to refresh token
+      //store.commonStore.setToken(user.token)           
+      //this.startRefreshTokenTimer(user);  // add after app finish - to refresh token
 
       // set the user state here to that user also
        // need to user runInAction here - because need to wait from await agent...
-      runInAction(() => this.user = user);
+      //runInAction(() => this.user = user);
       // move user to activities page after login success
-      history.push('/activities')
+
+      // add below
+      await agent.Account.register(creds);
+      history.push(`/account/registerSuccess?email=${creds.email}`);
+
+      // remove this when use email verify
+      //history.push('/activities')
       // close the modal page
       store.modalStore.closeModal();
     } catch (error) {

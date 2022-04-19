@@ -13,7 +13,7 @@ export default observer(function LoginForm() {
       initialValues={{email: '', password: '', error: null}}
       onSubmit={(values, {setErrors}) => userStore
         .login(values)
-        .catch(error => setErrors({error: 'Invalid email or password'}))}
+        .catch(error => setErrors({error: error.response.data}))} //replace this error:'Invalid email or password'}))} when use email verify
     > 
       {({handleSubmit, isSubmitting, errors}) => (
         <Form className='ui form' onSubmit={handleSubmit} autoComplete='off'>

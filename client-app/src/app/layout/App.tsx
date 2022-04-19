@@ -17,6 +17,8 @@ import LoadingComponent from './LoadingComponent';
 import ModalContainer from '../common/modals/ModalContainer';
 import ProfilePage from '../../features/profiles/ProfilePage';
 import { PrivateRoute } from './PrivateRoute';
+import RegisterSuccess from '../../features/users/RegisterSuccess';
+import ConfirmEmail from '../../features/users/ConfirmEmail';
 
 function App() { 
   const {commonStore, userStore} = useStore();
@@ -70,6 +72,8 @@ function Nav() {
           <Route path='/profiles/:username' element={<PrivateRoute component={ProfilePage} />} />
           <Route path='/errors' element={<PrivateRoute component={TestErrors} />} />
           <Route path='/server-error' element={<ServerError />} />
+          <Route path='/account/registerSuccess' element={<RegisterSuccess />} />
+          <Route path='/account/verifyEmail' element={<ConfirmEmail />} />
           <Route path='/login' element={<LoginForm />} />
           <Route path='*' element={<NotFound />} />
         </Routes>  
